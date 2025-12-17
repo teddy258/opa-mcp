@@ -1,0 +1,51 @@
+{
+  "name": "opamcp",
+  "version": "1.0.0",
+  "description": "OpenAPI MCP Server - Expose OpenAPI specs as MCP tools for AI assistants",
+  "author": "jinwoo",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "opamcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "openapi",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "api",
+    "swagger",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teddy258/opa-mcp"
+  },
+  "scripts": {
+    "build": "bun build ./index.ts --outdir ./dist --target node --minify",
+    "dev": "bun run index.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "devDependencies": {
+    "@scalar/openapi-types": "^0.5.3",
+    "@types/bun": "latest",
+    "@types/node": "^22"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@scalar/openapi-parser": "^0.23.7",
+    "zod": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
