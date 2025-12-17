@@ -1,149 +1,135 @@
 # opamcp
 
-OpenAPI MCP Server - OpenAPI 스펙을 MCP 도구로 노출하여 AI 어시스턴트가 API를 탐색할 수 있게 합니다.
+> "OpenAPI 스펙 문서 읽기 귀찮아..." 하던 AI를 위한 MCP 서버
 
-## 설치 및 사용법
+OpenAPI 스펙 URL 하나 던져주면, AI가 알아서 API 구조를 탐색할 수 있게 해주는 도구입니다.
+더 이상 "이 API 어떻게 쓰는 거야?" 라고 물을 때마다 스펙 문서 전체를 붙여넣지 않아도 됩니다.
+
+## 어떻게 쓰나요?
 
 ```bash
-# npx로 바로 실행
-npx -y opamcp <openapi-url>
-
-# 예시
 npx -y opamcp https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
-## MCP 클라이언트 설정
+끝. 진짜 이게 다입니다.
 
-### Claude Desktop / Cursor
-
-MCP 클라이언트 설정에 다음을 추가하세요:
+## Claude Desktop / Cursor 설정
 
 ```json
 {
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp",
-        "https://petstore3.swagger.io/api/v3/openapi.json"
-      ]
+      "args": ["-y", "opamcp", "https://your-api.com/openapi.json"]
     }
   }
 }
 ```
 
-## 제공되는 도구
+## 뭘 할 수 있나요?
 
-| 도구                   | 설명                                                        | 파라미터                         |
-| ---------------------- | ----------------------------------------------------------- | -------------------------------- |
-| `get_api_info`         | API 기본 정보 조회 (title, version, description, servers)   | -                                |
-| `list_tags`            | 모든 태그(API 그룹) 목록 조회                               | -                                |
-| `list_endpoints`       | 모든 엔드포인트 요약 목록 조회                              | -                                |
-| `get_endpoints_by_tag` | 특정 태그에 속한 엔드포인트 조회                            | `tag: string`                    |
-| `get_endpoint_detail`  | 엔드포인트 상세 정보 조회 (파라미터, 요청, 응답, 스키마 등) | `path: string`, `method: string` |
-| `list_schemas`         | components/schemas의 모든 스키마 이름 조회                  | -                                |
-| `get_schema`           | 특정 스키마 정의 조회                                       | `name: string`                   |
-| `search_endpoints`     | path, summary, operationId로 엔드포인트 검색                | `query: string`                  |
+| 도구                   | 하는 일                           |
+| ---------------------- | --------------------------------- |
+| `get_api_info`         | API가 뭐하는 녀석인지 한눈에 파악 |
+| `list_tags`            | API 그룹(태그) 목록 보기          |
+| `list_endpoints`       | 전체 엔드포인트 훑어보기          |
+| `get_endpoints_by_tag` | 특정 태그의 엔드포인트만 보기     |
+| `get_endpoint_detail`  | 엔드포인트 하나 깊게 파보기       |
+| `list_schemas`         | 어떤 데이터 타입들이 있는지 보기  |
+| `get_schema`           | 특정 스키마 정의 자세히 보기      |
+| `search_endpoints`     | 키워드로 엔드포인트 검색          |
+| `refresh_spec`         | 스펙 변경됐으면 새로고침          |
 
-## 권장 사용 흐름
+## 이렇게 쓰면 됩니다
 
-1. **`get_api_info`** - API가 무엇인지 파악
-2. **`list_tags`** - API 구조 파악
-3. **`list_endpoints`** 또는 **`get_endpoints_by_tag`** - 관련 엔드포인트 찾기
-4. **`get_endpoint_detail`** - 특정 엔드포인트 상세 정보 확인
-5. **`list_schemas`** → **`get_schema`** - 데이터 타입 탐색
+```
+나: "이 API 뭐야?"
+AI: (get_api_info 호출) "아, 펫샵 API네요. 반려동물 관리하는..."
+
+나: "주문 관련 API 있어?"
+AI: (search_endpoints 'order' 호출) "네, 주문 생성, 조회, 삭제 API가 있네요"
+
+나: "주문 생성 어떻게 해?"
+AI: (get_endpoint_detail '/store/order' 'post' 호출) "이렇게 하시면 됩니다..."
+```
 
 ## 개발
 
 ```bash
-# 의존성 설치
-bun install
-
-# 로컬 실행
-bun run dev https://petstore3.swagger.io/api/v3/openapi.json
-
-# 배포용 빌드
-bun run build
+bun install          # 의존성 설치
+bun run dev <url>    # 로컬 실행
+bun run build        # 빌드
 ```
 
 ## 라이선스
 
-MIT
+MIT - 맘대로 쓰세요
 
 ---
 
 # English
 
-OpenAPI MCP Server - Expose OpenAPI specs as MCP tools for AI assistants.
+> For AIs tired of reading OpenAPI spec documents
 
-This MCP server parses an OpenAPI specification and provides semantic tools that allow AI assistants to explore and understand APIs step by step.
+Just give it an OpenAPI spec URL, and your AI can explore the API structure on its own.
+No more pasting entire spec documents every time someone asks "how do I use this API?"
 
-## Installation & Usage
+## Quick Start
 
 ```bash
-# Run directly with npx
-npx -y opamcp <openapi-url>
-
-# Example
 npx -y opamcp https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
-## MCP Client Configuration
+That's it. Really.
 
-### Claude Desktop / Cursor
-
-Add to your MCP client configuration:
+## Claude Desktop / Cursor Setup
 
 ```json
 {
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp",
-        "https://petstore3.swagger.io/api/v3/openapi.json"
-      ]
+      "args": ["-y", "opamcp", "https://your-api.com/openapi.json"]
     }
   }
 }
 ```
 
-## Available Tools
+## What can it do?
 
-| Tool                   | Description                                                     | Parameters                       |
-| ---------------------- | --------------------------------------------------------------- | -------------------------------- |
-| `get_api_info`         | Get API basic info (title, version, description, servers)       | -                                |
-| `list_tags`            | List all tags (API groups)                                      | -                                |
-| `list_endpoints`       | List all endpoints with summary                                 | -                                |
-| `get_endpoints_by_tag` | Get endpoints filtered by tag                                   | `tag: string`                    |
-| `get_endpoint_detail`  | Get detailed endpoint info (params, request, response, schemas) | `path: string`, `method: string` |
-| `list_schemas`         | List all schema names in components/schemas                     | -                                |
-| `get_schema`           | Get full schema definition                                      | `name: string`                   |
-| `search_endpoints`     | Search endpoints by path, summary, or operationId               | `query: string`                  |
+| Tool                   | What it does                           |
+| ---------------------- | -------------------------------------- |
+| `get_api_info`         | Get the gist of what this API is about |
+| `list_tags`            | See how the API is organized           |
+| `list_endpoints`       | Browse all endpoints                   |
+| `get_endpoints_by_tag` | Filter endpoints by tag                |
+| `get_endpoint_detail`  | Deep dive into a specific endpoint     |
+| `list_schemas`         | See what data types exist              |
+| `get_schema`           | Get the full schema definition         |
+| `search_endpoints`     | Find endpoints by keyword              |
+| `refresh_spec`         | Reload spec if it changed              |
 
-## Recommended Usage Flow
+## How it works
 
-1. **`get_api_info`** - Understand what the API is about
-2. **`list_tags`** - See how the API is organized
-3. **`list_endpoints`** or **`get_endpoints_by_tag`** - Find relevant endpoints
-4. **`get_endpoint_detail`** - Get detailed information about a specific endpoint
-5. **`list_schemas`** → **`get_schema`** - Explore data types
+```
+You: "What's this API?"
+AI: (calls get_api_info) "It's a pet store API for managing pets..."
+
+You: "Any order-related endpoints?"
+AI: (calls search_endpoints 'order') "Yes, there's create, get, and delete order APIs"
+
+You: "How do I create an order?"
+AI: (calls get_endpoint_detail '/store/order' 'post') "Here's how..."
+```
 
 ## Development
 
 ```bash
-# Install dependencies
-bun install
-
-# Run locally
-bun run dev https://petstore3.swagger.io/api/v3/openapi.json
-
-# Build for distribution
-bun run build
+bun install          # Install deps
+bun run dev <url>    # Run locally
+bun run build        # Build
 ```
 
 ## License
 
-MIT
+MIT - Do whatever you want

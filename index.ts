@@ -12,23 +12,26 @@ import {
   listSchemasTool,
   getSchemaTool,
   searchEndpointsTool,
+  refreshSpecTool,
 } from "./tools/index.js";
 
 async function main() {
   // Get OpenAPI URL from command line arguments
   const args = process.argv.slice(2);
-  
+
   if (args.length === 0) {
     console.error("Usage: opamcp <openapi-url>");
-    console.error("Example: opamcp https://petstore3.swagger.io/api/v3/openapi.json");
+    console.error(
+      "Example: opamcp https://petstore3.swagger.io/api/v3/openapi.json"
+    );
     process.exit(1);
   }
-  
-  const openapiUrl = args[0];
-  
+
+  const openapiUrl = args[0] as string;
+
   // Parse the OpenAPI spec
   console.error(`Loading OpenAPI spec from: ${openapiUrl}`);
-  
+
   try {
     const parsed = await parseOpenAPI(openapiUrl);
     console.error(`Loaded: ${parsed.info.title} v${parsed.info.version}`);
@@ -36,77 +39,79 @@ async function main() {
     console.error(`  - ${parsed.tags.length} tags`);
     console.error(`  - ${parsed.schemas.size} schemas`);
   } catch (error) {
-    console.error(`Failed to load OpenAPI spec: ${error instanceof Error ? error.message : error}`);
+    console.error(
+      `Failed to load OpenAPI spec: ${
+        error instanceof Error ? error.message : error
+      }`
+    );
     process.exit(1);
   }
-  
+
   // Create MCP server
   const server = new McpServer({
     name: "opamcp",
     version: "1.0.0",
   });
-  
-  // Register all tools
-  server.tool(
+
+  // Register all tools using the new registerTool API
+  server.registerTool(
     getApiInfoTool.name,
-    getApiInfoTool.description,
-    getApiInfoTool.inputSchema.shape,
+    getApiInfoTool.config,
     getApiInfoTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     listTagsTool.name,
-    listTagsTool.description,
-    listTagsTool.inputSchema.shape,
+    listTagsTool.config,
     listTagsTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     listEndpointsTool.name,
-    listEndpointsTool.description,
-    listEndpointsTool.inputSchema.shape,
+    listEndpointsTool.config,
     listEndpointsTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     getEndpointsByTagTool.name,
-    getEndpointsByTagTool.description,
-    getEndpointsByTagTool.inputSchema.shape,
+    getEndpointsByTagTool.config,
     getEndpointsByTagTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     getEndpointDetailTool.name,
-    getEndpointDetailTool.description,
-    getEndpointDetailTool.inputSchema.shape,
+    getEndpointDetailTool.config,
     getEndpointDetailTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     listSchemasTool.name,
-    listSchemasTool.description,
-    listSchemasTool.inputSchema.shape,
+    listSchemasTool.config,
     listSchemasTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     getSchemaTool.name,
-    getSchemaTool.description,
-    getSchemaTool.inputSchema.shape,
+    getSchemaTool.config,
     getSchemaTool.handler
   );
-  
-  server.tool(
+
+  server.registerTool(
     searchEndpointsTool.name,
-    searchEndpointsTool.description,
-    searchEndpointsTool.inputSchema.shape,
+    searchEndpointsTool.config,
     searchEndpointsTool.handler
   );
-  
+
+  server.registerTool(
+    refreshSpecTool.name,
+    refreshSpecTool.config,
+    refreshSpecTool.handler
+  );
+
   // Connect via stdio transport
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   console.error("MCP server started");
 }
 

@@ -6,4 +6,5 @@ export { getEndpointDetailTool } from "./get-endpoint-detail.js";
 export { listSchemasTool } from "./list-schemas.js";
 export { getSchemaTool } from "./get-schema.js";
 export { searchEndpointsTool } from "./search-endpoints.js";
+export { refreshSpecTool } from "./refresh-spec.js";
 

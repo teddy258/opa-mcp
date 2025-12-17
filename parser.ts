@@ -10,8 +10,9 @@ import type {
   HTTP_METHODS,
 } from "./types.js";
 
-// Cache for parsed OpenAPI document
+// Cache for parsed OpenAPI document and URL
 let cachedOpenAPI: ParsedOpenAPI | null = null;
+let cachedUrl: string | null = null;
 
 /**
  * Fetch OpenAPI spec from URL
@@ -199,6 +200,7 @@ export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
 
   // Cache it
   cachedOpenAPI = parsed;
+  cachedUrl = url;
 
   return parsed;
 }
@@ -213,6 +215,24 @@ export function getParsedOpenAPI(): ParsedOpenAPI {
     );
   }
   return cachedOpenAPI;
+}
+
+/**
+ * Get the cached OpenAPI URL
+ */
+export function getOpenAPIUrl(): string {
+  if (!cachedUrl) {
+    throw new Error("OpenAPI URL not set.");
+  }
+  return cachedUrl;
+}
+
+/**
+ * Refresh the OpenAPI spec from the cached URL
+ */
+export async function refreshOpenAPI(): Promise<ParsedOpenAPI> {
+  const url = getOpenAPIUrl();
+  return parseOpenAPI(url);
 }
 
 /**
@@ -250,7 +270,7 @@ export function extractReferencedSchemas(
     // Check for $ref (though after dereference, these should be resolved)
     if (typeof record.$ref === "string") {
       const match = record.$ref.match(/#\/components\/schemas\/(.+)/);
-      if (match) {
+      if (match && match[1]) {
         schemas.add(match[1]);
       }
     }

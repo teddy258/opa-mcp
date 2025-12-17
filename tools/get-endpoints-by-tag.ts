@@ -3,13 +3,17 @@ import { getParsedOpenAPI } from "../parser.js";
 
 export const getEndpointsByTagTool = {
   name: "get_endpoints_by_tag",
-  description: "Get all endpoints that belong to a specific tag (API group). Use list_tags first to see available tags.",
-  inputSchema: z.object({
-    tag: z.string().describe("The tag name to filter endpoints by"),
-  }),
+  config: {
+    title: "Get Endpoints by Tag",
+    description:
+      "Get all endpoints that belong to a specific tag (API group). Use list_tags first to see available tags.",
+    inputSchema: {
+      tag: z.string().describe("The tag name to filter endpoints by"),
+    },
+  },
   handler: async ({ tag }: { tag: string }) => {
     const parsed = getParsedOpenAPI();
-    
+
     const endpoints = parsed.endpoints
       .filter((e) => e.tags?.includes(tag))
       .map((e) => ({
@@ -19,7 +23,7 @@ export const getEndpointsByTagTool = {
         summary: e.summary,
         deprecated: e.deprecated || undefined,
       }));
-    
+
     if (endpoints.length === 0) {
       return {
         content: [
@@ -30,7 +34,7 @@ export const getEndpointsByTagTool = {
         ],
       };
     }
-    
+
     return {
       content: [
         {
@@ -41,4 +45,3 @@ export const getEndpointsByTagTool = {
     };
   },
 };
-

@@ -1,14 +1,17 @@
-import { z } from "zod";
 import { getParsedOpenAPI } from "../parser.js";
 import type { SchemaInfo } from "../types.js";
 
 export const listSchemasTool = {
   name: "list_schemas",
-  description: "List all schema names defined in components/schemas. Use this to discover available data types, then use get_schema to get the full definition.",
-  inputSchema: z.object({}),
+  config: {
+    title: "List Schemas",
+    description:
+      "List all schema names defined in components/schemas. Use this to discover available data types, then use get_schema to get the full definition.",
+    inputSchema: {},
+  },
   handler: async () => {
     const parsed = getParsedOpenAPI();
-    
+
     const schemas: SchemaInfo[] = [];
     for (const [name, schema] of parsed.schemas) {
       const schemaObj = schema as Record<string, unknown>;
@@ -18,7 +21,7 @@ export const listSchemasTool = {
         description: schemaObj.description as string | undefined,
       });
     }
-    
+
     if (schemas.length === 0) {
       return {
         content: [
@@ -29,7 +32,7 @@ export const listSchemasTool = {
         ],
       };
     }
-    
+
     return {
       content: [
         {
@@ -40,4 +43,3 @@ export const listSchemasTool = {
     };
   },
 };
-
