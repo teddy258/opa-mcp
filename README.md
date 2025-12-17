@@ -8,10 +8,10 @@ OpenAPI 스펙 URL 하나 던져주면, AI가 알아서 API 구조를 탐색할 
 ## 어떻게 쓰나요?
 
 ```bash
-npx -y opamcp https://petstore3.swagger.io/api/v3/openapi.json
+npx -y opamcp@latest https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
-끝. 진짜 이게 다입니다.
+끝. 진짜 이게 다입니다. (`@latest` 붙이면 항상 최신 버전)
 
 ## Claude Desktop / Cursor 설정
 
@@ -20,7 +20,7 @@ npx -y opamcp https://petstore3.swagger.io/api/v3/openapi.json
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp", "https://your-api.com/openapi.json"]
+      "args": ["-y", "opamcp@latest", "https://your-api.com/openapi.json"]
     }
   }
 }
@@ -77,10 +77,10 @@ No more pasting entire spec documents every time someone asks "how do I use this
 ## Quick Start
 
 ```bash
-npx -y opamcp https://petstore3.swagger.io/api/v3/openapi.json
+npx -y opamcp@latest https://petstore3.swagger.io/api/v3/openapi.json
 ```
 
-That's it. Really.
+That's it. Really. (`@latest` ensures you always get the newest version)
 
 ## Claude Desktop / Cursor Setup
 
@@ -89,7 +89,7 @@ That's it. Really.
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp", "https://your-api.com/openapi.json"]
+      "args": ["-y", "opamcp@latest", "https://your-api.com/openapi.json"]
     }
   }
 }
