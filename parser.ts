@@ -19,7 +19,9 @@ let cachedOpenAPI: ParsedOpenAPI | null = null;
 async function fetchSpec(url: string): Promise<string> {
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`
+    );
   }
   return response.text();
 }
@@ -47,7 +49,7 @@ function extractApiInfo(doc: OpenAPIDocument): ApiInfo {
  */
 function extractTags(doc: OpenAPIDocument): TagInfo[] {
   const tags: TagInfo[] = [];
-  
+
   // Get declared tags
   if (doc.tags) {
     for (const tag of doc.tags) {
@@ -60,15 +62,24 @@ function extractTags(doc: OpenAPIDocument): TagInfo[] {
       }
     }
   }
-  
+
   // Find tags used in operations but not declared
   const declaredTagNames = new Set(tags.map((t) => t.name));
   const paths = doc.paths || {};
-  
+
   for (const pathItem of Object.values(paths)) {
     if (!pathItem) continue;
-    
-    for (const method of ["get", "post", "put", "delete", "patch", "options", "head", "trace"] as const) {
+
+    for (const method of [
+      "get",
+      "post",
+      "put",
+      "delete",
+      "patch",
+      "options",
+      "head",
+      "trace",
+    ] as const) {
       const operation = pathItem[method];
       if (operation?.tags) {
         for (const tagName of operation.tags) {
@@ -80,7 +91,7 @@ function extractTags(doc: OpenAPIDocument): TagInfo[] {
       }
     }
   }
-  
+
   return tags;
 }
 
@@ -90,11 +101,20 @@ function extractTags(doc: OpenAPIDocument): TagInfo[] {
 function extractEndpoints(doc: OpenAPIDocument): EndpointSummary[] {
   const endpoints: EndpointSummary[] = [];
   const paths = doc.paths || {};
-  
+
   for (const [path, pathItem] of Object.entries(paths)) {
     if (!pathItem) continue;
-    
-    for (const method of ["get", "post", "put", "delete", "patch", "options", "head", "trace"] as const) {
+
+    for (const method of [
+      "get",
+      "post",
+      "put",
+      "delete",
+      "patch",
+      "options",
+      "head",
+      "trace",
+    ] as const) {
       const operation = pathItem[method];
       if (operation) {
         endpoints.push({
@@ -109,23 +129,25 @@ function extractEndpoints(doc: OpenAPIDocument): EndpointSummary[] {
       }
     }
   }
-  
+
   return endpoints;
 }
 
 /**
  * Extract schemas from components
  */
-function extractSchemas(doc: OpenAPIDocument): Map<string, OpenAPI.SchemaObject> {
+function extractSchemas(
+  doc: OpenAPIDocument
+): Map<string, OpenAPI.SchemaObject> {
   const schemas = new Map<string, OpenAPI.SchemaObject>();
   const componentSchemas = doc.components?.schemas || {};
-  
+
   for (const [name, schema] of Object.entries(componentSchemas)) {
     if (schema && typeof schema === "object") {
       schemas.set(name, schema as OpenAPI.SchemaObject);
     }
   }
-  
+
   return schemas;
 }
 
@@ -135,26 +157,37 @@ function extractSchemas(doc: OpenAPIDocument): Map<string, OpenAPI.SchemaObject>
 export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
   // Fetch the spec
   const specContent = await fetchSpec(url);
-  
-  // Validate the spec
+
+  // Validate the spec (warnings only, don't fail on validation errors)
   const { valid, errors } = await validate(specContent);
-  if (!valid) {
-    const errorMessages = errors?.map((e) => e.message).join(", ") || "Unknown validation error";
-    throw new Error(`Invalid OpenAPI spec: ${errorMessages}`);
+  if (!valid && errors && errors.length > 0) {
+    // Log validation warnings but don't fail - some valid specs fail strict validation
+    console.error("Validation warnings (continuing anyway):");
+    for (const err of errors.slice(0, 5)) {
+      console.error(`  - ${err.message}`);
+    }
+    if (errors.length > 5) {
+      console.error(`  ... and ${errors.length - 5} more`);
+    }
   }
-  
+
   // Dereference to resolve all $ref
   const { schema, errors: derefErrors } = await dereference(specContent);
   if (derefErrors && derefErrors.length > 0) {
-    console.error("Warning: Some references could not be resolved:", derefErrors);
+    console.error("Warning: Some references could not be resolved:");
+    for (const err of derefErrors.slice(0, 5)) {
+      console.error(`  - ${err.message}`);
+    }
   }
-  
+
   if (!schema) {
-    throw new Error("Failed to parse OpenAPI spec");
+    throw new Error(
+      "Failed to parse OpenAPI spec. Please check if the URL returns a valid OpenAPI document."
+    );
   }
-  
+
   const doc = schema as OpenAPIDocument;
-  
+
   // Build the parsed context
   const parsed: ParsedOpenAPI = {
     document: doc,
@@ -163,10 +196,10 @@ export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
     endpoints: extractEndpoints(doc),
     schemas: extractSchemas(doc),
   };
-  
+
   // Cache it
   cachedOpenAPI = parsed;
-  
+
   return parsed;
 }
 
@@ -175,7 +208,9 @@ export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
  */
 export function getParsedOpenAPI(): ParsedOpenAPI {
   if (!cachedOpenAPI) {
-    throw new Error("OpenAPI spec not loaded. Please provide a valid OpenAPI URL.");
+    throw new Error(
+      "OpenAPI spec not loaded. Please provide a valid OpenAPI URL."
+    );
   }
   return cachedOpenAPI;
 }
@@ -195,21 +230,23 @@ export function getOperation(path: string, method: HttpMethod) {
 /**
  * Extract schema names referenced in an operation
  */
-export function extractReferencedSchemas(operation: OpenAPI.Operation): string[] {
+export function extractReferencedSchemas(
+  operation: OpenAPI.Operation
+): string[] {
   const schemas = new Set<string>();
-  
+
   function findSchemaRefs(obj: unknown): void {
     if (!obj || typeof obj !== "object") return;
-    
+
     if (Array.isArray(obj)) {
       for (const item of obj) {
         findSchemaRefs(item);
       }
       return;
     }
-    
+
     const record = obj as Record<string, unknown>;
-    
+
     // Check for $ref (though after dereference, these should be resolved)
     if (typeof record.$ref === "string") {
       const match = record.$ref.match(/#\/components\/schemas\/(.+)/);
@@ -217,7 +254,7 @@ export function extractReferencedSchemas(operation: OpenAPI.Operation): string[]
         schemas.add(match[1]);
       }
     }
-    
+
     // Check for schema type definitions that might have come from components
     if (record.title && typeof record.title === "string") {
       // After dereference, schemas are inlined but may retain their title
@@ -226,14 +263,13 @@ export function extractReferencedSchemas(operation: OpenAPI.Operation): string[]
         schemas.add(record.title);
       }
     }
-    
+
     // Recursively check nested objects
     for (const value of Object.values(record)) {
       findSchemaRefs(value);
     }
   }
-  
+
   findSchemaRefs(operation);
   return Array.from(schemas);
 }
-
