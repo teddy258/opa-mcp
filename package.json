@@ -1,6 +1,6 @@
 {
   "name": "opamcp",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "OpenAPI MCP Server - Expose OpenAPI specs as MCP tools for AI assistants",
   "author": "jinwoo",
   "license": "MIT",
