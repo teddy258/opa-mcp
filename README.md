@@ -28,7 +28,11 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     }
   }
 }
@@ -43,7 +47,11 @@ Add to your MCP settings (`.cursor/mcp.json`):
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     }
   }
 }
@@ -51,17 +59,17 @@ Add to your MCP settings (`.cursor/mcp.json`):
 
 ## Available Tools
 
-| Tool                   | Description                                        |
-| ---------------------- | -------------------------------------------------- |
-| `get_api_info`         | Retrieve API metadata (title, version, servers)    |
-| `list_tags`            | List all available tags with descriptions          |
-| `list_endpoints`       | List all endpoints with methods and summaries      |
-| `get_endpoints_by_tag` | Filter endpoints by specific tag                   |
-| `get_endpoint_detail`  | Get full endpoint specification including schemas  |
-| `list_schemas`         | List all schema definitions                        |
-| `get_schema`           | Get detailed schema with resolved references       |
-| `search_endpoints`     | Search endpoints by keyword                        |
-| `refresh_spec`         | Reload the OpenAPI specification                   |
+| Tool                   | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `get_api_info`         | Retrieve API metadata (title, version, servers)   |
+| `list_tags`            | List all available tags with descriptions         |
+| `list_endpoints`       | List all endpoints with methods and summaries     |
+| `get_endpoints_by_tag` | Filter endpoints by specific tag                  |
+| `get_endpoint_detail`  | Get full endpoint specification including schemas |
+| `list_schemas`         | List all schema definitions                       |
+| `get_schema`           | Get detailed schema with resolved references      |
+| `search_endpoints`     | Search endpoints by keyword                       |
+| `refresh_spec`         | Reload the OpenAPI specification                  |
 
 ## Supported Formats
 
@@ -90,11 +98,19 @@ Configure multiple servers in your MCP settings:
   "mcpServers": {
     "petstore": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     },
     "stripe": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"
+      ]
     }
   }
 }
@@ -180,7 +196,11 @@ Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     }
   }
 }
@@ -195,7 +215,11 @@ MCP 설정 파일(`.cursor/mcp.json`)에 추가:
   "mcpServers": {
     "my-api": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     }
   }
 }
@@ -203,17 +227,17 @@ MCP 설정 파일(`.cursor/mcp.json`)에 추가:
 
 ## 사용 가능한 도구
 
-| 도구                   | 설명                                               |
-| ---------------------- | -------------------------------------------------- |
-| `get_api_info`         | API 메타데이터 조회 (제목, 버전, 서버)             |
-| `list_tags`            | 사용 가능한 모든 태그 및 설명 조회                 |
-| `list_endpoints`       | 모든 엔드포인트 목록 조회                          |
-| `get_endpoints_by_tag` | 특정 태그로 엔드포인트 필터링                      |
-| `get_endpoint_detail`  | 스키마를 포함한 엔드포인트 상세 스펙 조회          |
-| `list_schemas`         | 모든 스키마 정의 목록 조회                         |
-| `get_schema`           | 참조가 해석된 상세 스키마 조회                     |
-| `search_endpoints`     | 키워드로 엔드포인트 검색                           |
-| `refresh_spec`         | OpenAPI 스펙 새로고침                              |
+| 도구                   | 설명                                      |
+| ---------------------- | ----------------------------------------- |
+| `get_api_info`         | API 메타데이터 조회 (제목, 버전, 서버)    |
+| `list_tags`            | 사용 가능한 모든 태그 및 설명 조회        |
+| `list_endpoints`       | 모든 엔드포인트 목록 조회                 |
+| `get_endpoints_by_tag` | 특정 태그로 엔드포인트 필터링             |
+| `get_endpoint_detail`  | 스키마를 포함한 엔드포인트 상세 스펙 조회 |
+| `list_schemas`         | 모든 스키마 정의 목록 조회                |
+| `get_schema`           | 참조가 해석된 상세 스키마 조회            |
+| `search_endpoints`     | 키워드로 엔드포인트 검색                  |
+| `refresh_spec`         | OpenAPI 스펙 새로고침                     |
 
 ## 지원 형식
 
@@ -242,11 +266,19 @@ MCP 설정에서 여러 서버 구성:
   "mcpServers": {
     "petstore": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://petstore3.swagger.io/api/v3/openapi.json"
+      ]
     },
     "stripe": {
       "command": "npx",
-      "args": ["-y", "opamcp@latest", "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"]
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"
+      ]
     }
   }
 }
