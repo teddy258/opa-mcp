@@ -1,277 +1,282 @@
 # opamcp
 
-> OpenAPI spec을 context window에 욱여넣던 시절은 끝났다.
+MCP (Model Context Protocol) server for OpenAPI specification exploration.
 
-```
+Enables AI assistants to query OpenAPI specifications on-demand, eliminating the need to load entire spec documents into context.
 
-   ___  _ __   __ _ _ __ ___   ___ _ __
-  / _ \| '_ \ / _` | '_ ` _ \ / __| '_ \
- | (_) | |_) | (_| | | | | | | (__| |_) |
-  \___/| .__/ \__,_|_| |_| |_|\___| .__/
-       |_|                        |_|
+## Features
 
-```
+- **On-demand querying** — Fetch only the relevant portions of an OpenAPI spec
+- **Schema resolution** — Automatically resolves `$ref` references
+- **Search capabilities** — Find endpoints by keyword, path, or tag
+- **Zero configuration** — Single command setup with any OpenAPI spec URL
 
-OpenAPI 스펙 URL 하나면 충분합니다. AI가 필요할 때 필요한 만큼만 가져갑니다.
-
-## TL;DR
+## Installation
 
 ```bash
-npx -y opamcp@latest https://petstore3.swagger.io/api/v3/openapi.json
+npx -y opamcp@latest <openapi-spec-url>
 ```
 
-진짜 끝입니다. 더 설명이 필요하면 아래로 스크롤하세요.
+## Quick Start
 
-## Why?
+### Claude Desktop
 
-매번 이러고 계셨죠?
-
-```
-Human: 이 API 어떻게 써?
-       *OpenAPI spec 10,000줄 복붙*
-
-AI: 토큰이... 눈앞이... 캄캄...
-```
-
-이제 이렇게 됩니다:
-
-```
-Human: 이 API 어떻게 써?
-
-AI: (get_endpoint_detail 호출)
-    아, POST /orders 쓰시면 됩니다. requestBody는...
-```
-
-**Lazy loading for LLMs.** 필요한 정보만, 필요할 때.
-
-## Setup
-
-### Claude Desktop / Cursor
-
-`~/.cursor/mcp.json` 또는 Claude Desktop 설정:
+Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
-    "petstore": {
+    "my-api": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp@latest",
-        "https://petstore3.swagger.io/api/v3/openapi.json"
-      ]
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
     }
   }
 }
 ```
 
-여러 API? 여러 서버 추가하면 됩니다:
+### Cursor
+
+Add to your MCP settings (`.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "my-api": {
+      "command": "npx",
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+    }
+  }
+}
+```
+
+## Available Tools
+
+| Tool                   | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `get_api_info`         | Retrieve API metadata (title, version, servers)    |
+| `list_tags`            | List all available tags with descriptions          |
+| `list_endpoints`       | List all endpoints with methods and summaries      |
+| `get_endpoints_by_tag` | Filter endpoints by specific tag                   |
+| `get_endpoint_detail`  | Get full endpoint specification including schemas  |
+| `list_schemas`         | List all schema definitions                        |
+| `get_schema`           | Get detailed schema with resolved references       |
+| `search_endpoints`     | Search endpoints by keyword                        |
+| `refresh_spec`         | Reload the OpenAPI specification                   |
+
+## Supported Formats
+
+| Format        | Status    |
+| ------------- | --------- |
+| OpenAPI 3.0.x | Supported |
+| OpenAPI 3.1.x | Supported |
+| Swagger 2.0   | Partial   |
+| JSON          | Supported |
+| YAML          | Supported |
+
+## Configuration
+
+### Local Files
+
+```bash
+npx -y opamcp@latest file:///path/to/openapi.json
+```
+
+### Multiple APIs
+
+Configure multiple servers in your MCP settings:
 
 ```json
 {
   "mcpServers": {
     "petstore": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp@latest",
-        "https://petstore3.swagger.io/api/v3/openapi.json"
-      ]
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
     },
     "stripe": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp@latest",
-        "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"
-      ]
+      "args": ["-y", "opamcp@latest", "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"]
     }
   }
 }
 ```
 
-## API
-
-| Tool                   | Description                                            |
-| ---------------------- | ------------------------------------------------------ |
-| `get_api_info`         | 이 API가 뭔지 30초 안에 파악                           |
-| `list_tags`            | API 그룹핑 구조 확인                                   |
-| `list_endpoints`       | 전체 엔드포인트 인덱스                                 |
-| `get_endpoints_by_tag` | 태그별 필터링                                          |
-| `get_endpoint_detail`  | 단일 엔드포인트 딥다이브 (params, body, response 전부) |
-| `list_schemas`         | 데이터 모델 카탈로그                                   |
-| `get_schema`           | 스키마 정의 + nested refs 해석                         |
-| `search_endpoints`     | 키워드 기반 엔드포인트 검색                            |
-| `refresh_spec`         | 스펙 리로드 (개발 중 유용)                             |
-
-## How It Works
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                      Your AI                            │
-└─────────────────────┬───────────────────────────────────┘
-                      │ MCP Protocol
-                      ▼
-┌─────────────────────────────────────────────────────────┐
-│                     opamcp                              │
-│  ┌───────────────────────────────────────────────────┐  │
-│  │  Parsed OpenAPI Spec (in memory)                  │  │
-│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐             │  │
-│  │  │ paths   │ │ schemas │ │  tags   │  ...        │  │
-│  │  └─────────┘ └─────────┘ └─────────┘             │  │
-│  └───────────────────────────────────────────────────┘  │
-│           │              │              │               │
-│     list_endpoints  get_schema  search_endpoints       │
-│           │              │              │               │
-│           ▼              ▼              ▼               │
-│      Minimal, focused response to AI                   │
-└─────────────────────────────────────────────────────────┘
-```
-
-전체 스펙을 파싱해서 메모리에 들고 있다가, AI가 필요한 부분만 쿼리합니다.
-
 ## Development
 
+### Prerequisites
+
+- [Bun](https://bun.sh) runtime
+
+### Setup
+
 ```bash
-# Prerequisites: bun (https://bun.sh)
-
-git clone https://github.com/your-username/opamcp
+git clone https://github.com/your-username/opamcp.git
 cd opamcp
+bun install
+```
 
-bun install          # deps
-bun run dev <url>    # local dev server
-bun run build        # production build
+### Commands
+
+```bash
+bun run dev <url>    # Start development server
+bun run build        # Build for production
 ```
 
 ### Project Structure
 
 ```
 opamcp/
-├── index.ts         # MCP server entry
-├── parser.ts        # OpenAPI spec parser
-├── types.ts         # TypeScript definitions
-└── tools/           # Individual tool implementations
+├── index.ts         # MCP server entry point
+├── parser.ts        # OpenAPI specification parser
+├── types.ts         # TypeScript type definitions
+└── tools/           # Tool implementations
     ├── get-api-info.ts
     ├── get-endpoint-detail.ts
-    ├── search-endpoints.ts
-    └── ...
+    ├── get-endpoints-by-tag.ts
+    ├── get-schema.ts
+    ├── list-endpoints.ts
+    ├── list-schemas.ts
+    ├── list-tags.ts
+    ├── refresh-spec.ts
+    └── search-endpoints.ts
 ```
 
-## Compatibility
+## Contributing
 
-- OpenAPI 3.0.x ✅
-- OpenAPI 3.1.x ✅
-- Swagger 2.0 ⚠️ (기본적인 것들은 동작, edge case 있을 수 있음)
-
-## FAQ
-
-**Q: 스펙이 업데이트되면?**  
-A: `refresh_spec` 호출하거나, MCP 서버 재시작.
-
-**Q: 로컬 파일도 되나요?**  
-A: `file:///path/to/spec.json` 또는 `file:///path/to/spec.yaml`
-
-**Q: YAML 지원?**  
-A: 당연하죠.
-
-**Q: Private API라 인증이 필요한데?**  
-A: 스펙 URL에 접근만 가능하면 됩니다. 실제 API 호출은 AI가 별도로 합니다.
+Contributions are welcome. Please open an issue to discuss proposed changes before submitting a pull request.
 
 ## License
 
-MIT. Fork하든 수정하든 팔아먹든 알아서 하세요.
+[MIT](LICENSE)
 
 ---
 
-<p align="center">
-  <sub>Built with ☕ and mass amounts of <code>console.log</code></sub>
-</p>
+# 한국어
 
----
+OpenAPI 스펙 탐색을 위한 MCP (Model Context Protocol) 서버입니다.
 
-# English
+AI 어시스턴트가 OpenAPI 스펙을 필요에 따라 조회할 수 있도록 하여, 전체 스펙 문서를 컨텍스트에 로드할 필요를 없앱니다.
 
-> Stop stuffing OpenAPI specs into context windows.
+## 주요 기능
 
-One URL. That's all your AI needs to explore any OpenAPI-compliant API.
+- **온디맨드 조회** — OpenAPI 스펙의 필요한 부분만 가져옴
+- **스키마 참조 해석** — `$ref` 참조를 자동으로 해석
+- **검색 기능** — 키워드, 경로, 태그로 엔드포인트 검색
+- **설정 불필요** — OpenAPI 스펙 URL 하나로 즉시 시작
 
-## TL;DR
+## 설치
 
 ```bash
-npx -y opamcp@latest https://petstore3.swagger.io/api/v3/openapi.json
+npx -y opamcp@latest <openapi-spec-url>
 ```
 
-Done. Scroll down if you need more.
+## 빠른 시작
 
-## Why?
+### Claude Desktop
 
-Before:
+Claude Desktop 설정 파일(`claude_desktop_config.json`)에 추가:
 
-```
-Human: How do I use this API?
-       *pastes 10,000 lines of OpenAPI spec*
-
-AI: My tokens... my context... it's all... fading...
-```
-
-After:
-
-```
-Human: How do I use this API?
-
-AI: (calls get_endpoint_detail)
-    Use POST /orders. The requestBody should be...
+```json
+{
+  "mcpServers": {
+    "my-api": {
+      "command": "npx",
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+    }
+  }
+}
 ```
 
-**Lazy loading for LLMs.** Right info, right time.
+### Cursor
 
-## Setup
+MCP 설정 파일(`.cursor/mcp.json`)에 추가:
 
-### Claude Desktop / Cursor
+```json
+{
+  "mcpServers": {
+    "my-api": {
+      "command": "npx",
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+    }
+  }
+}
+```
+
+## 사용 가능한 도구
+
+| 도구                   | 설명                                               |
+| ---------------------- | -------------------------------------------------- |
+| `get_api_info`         | API 메타데이터 조회 (제목, 버전, 서버)             |
+| `list_tags`            | 사용 가능한 모든 태그 및 설명 조회                 |
+| `list_endpoints`       | 모든 엔드포인트 목록 조회                          |
+| `get_endpoints_by_tag` | 특정 태그로 엔드포인트 필터링                      |
+| `get_endpoint_detail`  | 스키마를 포함한 엔드포인트 상세 스펙 조회          |
+| `list_schemas`         | 모든 스키마 정의 목록 조회                         |
+| `get_schema`           | 참조가 해석된 상세 스키마 조회                     |
+| `search_endpoints`     | 키워드로 엔드포인트 검색                           |
+| `refresh_spec`         | OpenAPI 스펙 새로고침                              |
+
+## 지원 형식
+
+| 형식          | 지원 상태 |
+| ------------- | --------- |
+| OpenAPI 3.0.x | 지원      |
+| OpenAPI 3.1.x | 지원      |
+| Swagger 2.0   | 부분 지원 |
+| JSON          | 지원      |
+| YAML          | 지원      |
+
+## 설정
+
+### 로컬 파일
+
+```bash
+npx -y opamcp@latest file:///path/to/openapi.json
+```
+
+### 여러 API 등록
+
+MCP 설정에서 여러 서버 구성:
 
 ```json
 {
   "mcpServers": {
     "petstore": {
       "command": "npx",
-      "args": [
-        "-y",
-        "opamcp@latest",
-        "https://petstore3.swagger.io/api/v3/openapi.json"
-      ]
+      "args": ["-y", "opamcp@latest", "https://petstore3.swagger.io/api/v3/openapi.json"]
+    },
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "opamcp@latest", "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json"]
     }
   }
 }
 ```
 
-## API
+## 개발
 
-| Tool                   | Description                          |
-| ---------------------- | ------------------------------------ |
-| `get_api_info`         | Quick overview of the API            |
-| `list_tags`            | API grouping structure               |
-| `list_endpoints`       | Full endpoint index                  |
-| `get_endpoints_by_tag` | Filter by tag                        |
-| `get_endpoint_detail`  | Deep dive into single endpoint       |
-| `list_schemas`         | Data model catalog                   |
-| `get_schema`           | Schema definition with resolved refs |
-| `search_endpoints`     | Keyword-based endpoint search        |
-| `refresh_spec`         | Reload spec                          |
+### 사전 요구사항
 
-## Development
+- [Bun](https://bun.sh) 런타임
+
+### 설정
 
 ```bash
-bun install          # Install deps
-bun run dev <url>    # Local dev
-bun run build        # Build
+git clone https://github.com/your-username/opamcp.git
+cd opamcp
+bun install
 ```
 
-## License
+### 명령어
 
-MIT. Do whatever.
+```bash
+bun run dev <url>    # 개발 서버 시작
+bun run build        # 프로덕션 빌드
+```
 
----
+## 기여
 
-<p align="center">
-  <sub>Made by developers who got tired of Ctrl+F in Swagger UI</sub>
-</p>
+기여를 환영합니다. Pull Request를 제출하기 전에 먼저 Issue를 통해 제안하려는 변경 사항을 논의해 주세요.
+
+## 라이선스
+
+[MIT](LICENSE)
