@@ -15,22 +15,26 @@ export const getEndpointDetailTool = {
     inputSchema: {
       path: z.string().describe("The endpoint path (e.g., '/users/{id}')"),
       method: z
-        .enum([
-          "get",
-          "post",
-          "put",
-          "delete",
-          "patch",
-          "options",
-          "head",
-          "trace",
-        ])
-        .describe("The HTTP method (lowercase)"),
+        .preprocess(
+          (value) => (typeof value === "string" ? value.toLowerCase() : value),
+          z.enum([
+            "get",
+            "post",
+            "put",
+            "delete",
+            "patch",
+            "options",
+            "head",
+            "trace",
+          ])
+        )
+        .describe("The HTTP method (case-insensitive; normalized to lowercase)"),
     },
   },
-  handler: async ({ path, method }: { path: string; method: HttpMethod }) => {
+  handler: async ({ path, method }: { path: string; method: string }) => {
     const parsed = getParsedOpenAPI();
-    const operation = getOperation(path, method);
+    const normalizedMethod = method.toLowerCase() as HttpMethod;
+    const operation = getOperation(path, normalizedMethod);
 
     if (!operation) {
       return {
@@ -49,7 +53,7 @@ export const getEndpointDetailTool = {
     // Build detailed response
     const detail: EndpointDetail = {
       path,
-      method,
+      method: normalizedMethod,
       operationId: operation.operationId,
       summary: operation.summary,
       description: operation.description,

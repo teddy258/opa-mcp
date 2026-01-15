@@ -18,13 +18,43 @@ let cachedUrl: string | null = null;
  * Fetch OpenAPI spec from URL
  */
 async function fetchSpec(url: string): Promise<string> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`
-    );
+  const maxAttempts = 3;
+  const requestTimeoutMs = 15000;
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
+      let response: Response;
+      try {
+        response = await fetch(url, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+      if (!response.ok) {
+        const isRetryable = response.status >= 500 && response.status < 600;
+        if (isRetryable && attempt < maxAttempts) {
+          await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+          continue;
+        }
+        throw new Error(
+          `Failed to fetch OpenAPI spec: ${response.status} ${response.statusText}`
+        );
+      }
+      return response.text();
+    } catch (error) {
+      lastError = error;
+      if (attempt < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+        continue;
+      }
+    }
   }
-  return response.text();
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Failed to fetch OpenAPI spec: unknown error");
 }
 
 /**

@@ -18,7 +18,7 @@ export const getEndpointsByTagTool = {
       .filter((e) => e.tags?.includes(tag))
       .map((e) => ({
         path: e.path,
-        method: e.method.toUpperCase(),
+        method: e.method,
         operationId: e.operationId,
         summary: e.summary,
         deprecated: e.deprecated || undefined,

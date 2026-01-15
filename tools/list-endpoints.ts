@@ -14,7 +14,7 @@ export const listEndpointsTool = {
     // Return a concise list
     const endpoints = parsed.endpoints.map((e) => ({
       path: e.path,
-      method: e.method.toUpperCase(),
+      method: e.method,
       operationId: e.operationId,
       summary: e.summary,
       tags: e.tags,
