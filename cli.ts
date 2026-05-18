@@ -3,6 +3,8 @@ export interface CliOptions {
   headers: Record<string, string>;
 }
 
+type Env = Record<string, string | undefined>;
+
 export function printUsage() {
   console.error("Usage: opamcp <openapi-url> [--header \"Name: Value\"]");
   console.error(
@@ -46,8 +48,30 @@ function parseHeadersJson(headersJson: string): Record<string, string> {
   return headers;
 }
 
-export function parseArgs(args: string[]): CliOptions {
+function parseEnvHeaders(env: Env): Record<string, string> {
   const headers: Record<string, string> = {};
+
+  if (env.OPAMCP_AUTHORIZATION) {
+    headers.Authorization = env.OPAMCP_AUTHORIZATION;
+  }
+
+  if (env.OPAMCP_HEADER) {
+    const [name, value] = parseHeader(env.OPAMCP_HEADER);
+    headers[name] = value;
+  }
+
+  if (env.OPAMCP_HEADERS) {
+    Object.assign(headers, parseHeadersJson(env.OPAMCP_HEADERS));
+  }
+
+  return headers;
+}
+
+export function parseArgs(
+  args: string[],
+  env: Env = process.env
+): CliOptions {
+  const headers: Record<string, string> = parseEnvHeaders(env);
   let openapiUrl: string | null = null;
 
   for (let index = 0; index < args.length; index += 1) {

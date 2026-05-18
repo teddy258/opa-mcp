@@ -91,7 +91,47 @@ npx -y opamcp@latest file:///path/to/openapi.json
 
 ### Custom HTTP Headers
 
-Use `--header` (or `-H`) when the OpenAPI spec URL requires additional HTTP headers:
+For MCP servers using stdio transport, credentials should be provided through environment variables when possible. Use `OPAMCP_AUTHORIZATION` for the `Authorization` header:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json"
+      ],
+      "env": {
+        "OPAMCP_AUTHORIZATION": "Bearer token"
+      }
+    }
+  }
+}
+```
+
+You can also pass multiple headers as a JSON object:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json"
+      ],
+      "env": {
+        "OPAMCP_HEADERS": "{\"Authorization\":\"Bearer token\",\"X-API-Key\":\"your-api-key\"}"
+      }
+    }
+  }
+}
+```
+
+CLI header options are also supported. Use `--header` (or `-H`) when the OpenAPI spec URL requires additional HTTP headers:
 
 ```bash
 npx -y opamcp@latest https://example.com/openapi.json \
@@ -99,7 +139,7 @@ npx -y opamcp@latest https://example.com/openapi.json \
   --header "X-API-Key: your-api-key"
 ```
 
-In MCP settings:
+In MCP settings, split `--header` and its value into separate `args` entries:
 
 ```json
 {
@@ -295,7 +335,47 @@ npx -y opamcp@latest file:///path/to/openapi.json
 
 ### 커스텀 HTTP 헤더
 
-OpenAPI 스펙 URL 호출에 추가 HTTP 헤더가 필요하면 `--header` 또는 `-H`를 사용하세요:
+stdio transport를 사용하는 MCP 서버는 가능하면 환경변수로 credential을 전달하는 것이 권장됩니다. `Authorization` 헤더는 `OPAMCP_AUTHORIZATION`으로 전달할 수 있습니다:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json"
+      ],
+      "env": {
+        "OPAMCP_AUTHORIZATION": "Bearer token"
+      }
+    }
+  }
+}
+```
+
+여러 헤더는 JSON 객체로 전달할 수도 있습니다:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json"
+      ],
+      "env": {
+        "OPAMCP_HEADERS": "{\"Authorization\":\"Bearer token\",\"X-API-Key\":\"your-api-key\"}"
+      }
+    }
+  }
+}
+```
+
+CLI header 옵션도 계속 지원합니다. OpenAPI 스펙 URL 호출에 추가 HTTP 헤더가 필요하면 `--header` 또는 `-H`를 사용하세요:
 
 ```bash
 npx -y opamcp@latest https://example.com/openapi.json \
@@ -303,7 +383,7 @@ npx -y opamcp@latest https://example.com/openapi.json \
   --header "X-API-Key: your-api-key"
 ```
 
-MCP 설정에서는 다음처럼 전달할 수 있습니다:
+MCP 설정에서는 `--header`와 값을 서로 다른 `args` 항목으로 나누어 전달해야 합니다:
 
 ```json
 {

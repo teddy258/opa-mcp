@@ -45,6 +45,43 @@ describe("parseArgs", () => {
     });
   });
 
+  test("parses headers from environment variables", () => {
+    expect(
+      parseArgs(["https://example.com/openapi.json"], {
+        OPAMCP_AUTHORIZATION: "Basic token",
+        OPAMCP_HEADER: "X-API-Key: secret",
+        OPAMCP_HEADERS: '{"X-Tenant":"tenant-1"}',
+      })
+    ).toEqual({
+      openapiUrl: "https://example.com/openapi.json",
+      headers: {
+        Authorization: "Basic token",
+        "X-API-Key": "secret",
+        "X-Tenant": "tenant-1",
+      },
+    });
+  });
+
+  test("CLI headers override matching environment headers", () => {
+    expect(
+      parseArgs(
+        [
+          "https://example.com/openapi.json",
+          "-H",
+          "Authorization: Bearer cli-token",
+        ],
+        {
+          OPAMCP_AUTHORIZATION: "Basic env-token",
+        }
+      )
+    ).toEqual({
+      openapiUrl: "https://example.com/openapi.json",
+      headers: {
+        Authorization: "Bearer cli-token",
+      },
+    });
+  });
+
   test("rejects invalid header formats", () => {
     expect(() =>
       parseArgs(["https://example.com/openapi.json", "--header", "invalid"])
