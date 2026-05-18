@@ -10,14 +10,22 @@ import type {
   HTTP_METHODS,
 } from "./types.js";
 
+interface ParseOpenAPIOptions {
+  headers?: Record<string, string>;
+}
+
 // Cache for parsed OpenAPI document and URL
 let cachedOpenAPI: ParsedOpenAPI | null = null;
 let cachedUrl: string | null = null;
+let cachedHeaders: Record<string, string> = {};
 
 /**
  * Fetch OpenAPI spec from URL
  */
-async function fetchSpec(url: string): Promise<string> {
+async function fetchSpec(
+  url: string,
+  headers: Record<string, string>
+): Promise<string> {
   const maxAttempts = 3;
   const requestTimeoutMs = 15000;
   let lastError: unknown = null;
@@ -28,7 +36,10 @@ async function fetchSpec(url: string): Promise<string> {
       const timeoutId = setTimeout(() => controller.abort(), requestTimeoutMs);
       let response: Response;
       try {
-        response = await fetch(url, { signal: controller.signal });
+        response = await fetch(url, {
+          headers,
+          signal: controller.signal,
+        });
       } finally {
         clearTimeout(timeoutId);
       }
@@ -185,9 +196,14 @@ function extractSchemas(
 /**
  * Parse and validate OpenAPI spec from URL
  */
-export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
+export async function parseOpenAPI(
+  url: string,
+  options: ParseOpenAPIOptions = {}
+): Promise<ParsedOpenAPI> {
+  const headers = options.headers ?? {};
+
   // Fetch the spec
-  const specContent = await fetchSpec(url);
+  const specContent = await fetchSpec(url, headers);
 
   // Validate the spec (warnings only, don't fail on validation errors)
   const { valid, errors } = await validate(specContent);
@@ -231,6 +247,7 @@ export async function parseOpenAPI(url: string): Promise<ParsedOpenAPI> {
   // Cache it
   cachedOpenAPI = parsed;
   cachedUrl = url;
+  cachedHeaders = { ...headers };
 
   return parsed;
 }
@@ -262,7 +279,7 @@ export function getOpenAPIUrl(): string {
  */
 export async function refreshOpenAPI(): Promise<ParsedOpenAPI> {
   const url = getOpenAPIUrl();
-  return parseOpenAPI(url);
+  return parseOpenAPI(url, { headers: cachedHeaders });
 }
 
 /**

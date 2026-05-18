@@ -89,6 +89,42 @@ Add to your MCP settings (`.cursor/mcp.json`):
 npx -y opamcp@latest file:///path/to/openapi.json
 ```
 
+### Custom HTTP Headers
+
+Use `--header` (or `-H`) when the OpenAPI spec URL requires additional HTTP headers:
+
+```bash
+npx -y opamcp@latest https://example.com/openapi.json \
+  --header "Authorization: Bearer token" \
+  --header "X-API-Key: your-api-key"
+```
+
+In MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json",
+        "--header",
+        "Authorization: Bearer token"
+      ]
+    }
+  }
+}
+```
+
+You can also pass multiple headers as a JSON object:
+
+```bash
+npx -y opamcp@latest https://example.com/openapi.json \
+  --headers '{"Authorization":"Bearer token","X-API-Key":"your-api-key"}'
+```
+
 ### Multiple APIs
 
 Configure multiple servers in your MCP settings:
@@ -255,6 +291,42 @@ MCP 설정 파일(`.cursor/mcp.json`)에 추가:
 
 ```bash
 npx -y opamcp@latest file:///path/to/openapi.json
+```
+
+### 커스텀 HTTP 헤더
+
+OpenAPI 스펙 URL 호출에 추가 HTTP 헤더가 필요하면 `--header` 또는 `-H`를 사용하세요:
+
+```bash
+npx -y opamcp@latest https://example.com/openapi.json \
+  --header "Authorization: Bearer token" \
+  --header "X-API-Key: your-api-key"
+```
+
+MCP 설정에서는 다음처럼 전달할 수 있습니다:
+
+```json
+{
+  "mcpServers": {
+    "private-api": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "opamcp@latest",
+        "https://example.com/openapi.json",
+        "--header",
+        "Authorization: Bearer token"
+      ]
+    }
+  }
+}
+```
+
+여러 헤더를 JSON 객체로 전달할 수도 있습니다:
+
+```bash
+npx -y opamcp@latest https://example.com/openapi.json \
+  --headers '{"Authorization":"Bearer token","X-API-Key":"your-api-key"}'
 ```
 
 ### 여러 API 등록
